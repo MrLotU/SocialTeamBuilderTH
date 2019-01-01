@@ -10,6 +10,7 @@ pylint-django = "*"
 [packages]
 django = "*"
 pillow = "*"
+django-braces = "*"
 
 [requires]
 python_version = "3.7"
