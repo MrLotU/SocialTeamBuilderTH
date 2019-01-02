@@ -3,15 +3,6 @@
 {% block title %}{{ block.super }} | {{ userprofile.user.username }}{%endblock %}
 
 {% block body %}
-<div class="circle--actions--bar">
-  <nav class="bounds">
-    <ul class="circle--pill--list">
-      <li><a href="applications.html">Applications</a></li>
-      <li><a class="selected" href="profile.html">Profile</a></li>
-    </ul>
-  </nav>
-</div>
-
 <div class="bounds circle--page">
   <div class="circle--page--header circle--fluid">
     <div class="circle--fluid--cell circle--fluid--primary">
@@ -74,9 +65,9 @@
     <div class="circle--secondary--module">
       <h4>My Skills</h4>
       <ul class="unloaded">
-        {% if userprofile.skills.get %}
-        {% for skill in userprofile.skills.get %}
-        <li>{{ skill.name }}</li>
+        {% if userprofile.skills and userprofile.skills|length > 0 %}
+        {% for skill in userprofile.skills %}
+        <li>{{ skill }}</li>
         {% endfor %}
         {% else %}
         <li>None listed</li>

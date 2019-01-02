@@ -1,23 +1,14 @@
 {% extends "layout.html" %}
 
 {% block body %}
-<div class="circle--actions--bar">
-  <nav class="bounds">
-    <ul class="circle--pill--list">
-      <li><a href="applications.html">Applications</a></li>
-      <li><a class="selected" href="profile.html">Profile</a></li>
-    </ul>
-  </nav>
-</div>
-
 <div class="bounds circle--page">
-  <form method="POST">
+  <form id="form" method="POST">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
     {% for hidden_field in form.hidden_fields %}
-      {{ hidden_field.errors }}
-      {{ hidden_field }}
+    {{ hidden_field.errors }}
+    {{ hidden_field }}
     {% endfor %}
     <div class="circle--page--header circle--fluid">
       <div class="circle--fluid--cell circle--fluid--primary">
@@ -60,7 +51,7 @@
       <p>No past projects</p>
       {% endif %}
     </div>
-  
+
     <div class="grid-25 grid-push-5">
 
       <div class="circle--secondary--module">
@@ -75,10 +66,22 @@
       <div class="circle--secondary--module">
         <h4>My Skills</h4>
         <ul class="circle--clone--list">
-          <li>
-            <input type="text" placeholder="Skill" />
+          {% if userprofile.skills and userprofile.skills|length > 0 %}
+          {% for skill in userprofile.skills %}
+          <li class="circle--clone--clonable">
+            <input class="skill-field" type="text" placeholder="Skill" value="{{ skill }}" />
             <a class="circle--clone--add">Add Skill</a>
             <a class="circle--clone--remove">Remove</a>
+          </li>
+          {% endfor %}
+          {% else %}
+          <li class="circle--clone--clonable">
+            <input class="skill-field" type="text" placeholder="Skill" />
+            <a class="circle--clone--add">Add Skill</a>
+            <a class="circle--clone--remove">Remove</a>
+          </li>
+          {% endif %}
+          <li>
           </li>
         </ul>
       </div>
@@ -97,4 +100,12 @@
     </div>
   </form>
 </div>
+
+<script>
+  $("#form").submit(function () {
+    $("#id_skills_internal").val(Array.prototype.map.call(document.getElementsByClassName("skill-field"), function (val) {
+      return val.value;
+    }).join(',') || "");
+  });
+</script>
 {% endblock %}

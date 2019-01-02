@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
+from django.forms import HiddenInput
 from django.views.generic import CreateView, DetailView, FormView, RedirectView, UpdateView
 
 from .forms import UserCreateForm
@@ -41,18 +42,19 @@ class SignUpView(CreateView): # pylint: disable=too-many-ancestors
 class ProfileView(PrefetchRelatedMixin, DetailView): # pylint: disable=too-many-ancestors
     """Profile of a user"""
     model = UserProfile
-    prefetch_related = ("user", "skills")
+    prefetch_related = ("user",)
     template_name = "accounts/profile.html"
 
 class ProfileEditView(LoginRequiredMixin, PrefetchRelatedMixin, UpdateView): # pylint: disable=too-many-ancestors
     """Update profile of a user"""
     model = UserProfile
-    prefetch_related = ("user", "skills")
-    fields = ("bio", "pfp", "skills")
+    prefetch_related = ("user",)
+    fields = ("bio", "pfp", "skills_internal")
     template_name = "accounts/profile_edit.html"
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields['pfp'].required = False
-        form.fields['skills'].required = False
+        form.fields['skills_internal'].required = False
+        form.fields['skills_internal'].widget = HiddenInput()
         return form

@@ -60,6 +60,19 @@
             </div>
         </header>
 
+        {% block exclude_actions_bar %}
+        <div class="circle--actions--bar">
+            <nav class="bounds">
+                <ul class="circle--pill--list">
+                    <li><a href="applications.html">Applications</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a class="selected" href="{% url 'accounts:profile' user.username %}">Profile</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endblock exclude_actions_bar %}
+
         {% block body %}
         {% endblock body %}
     </body>

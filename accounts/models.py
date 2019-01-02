@@ -7,18 +7,20 @@ from django.urls import reverse_lazy
 
 # from projects.models import Project
 
-class Skill(Model):
-    """Skill a User can have"""
-    name = CharField(max_length=255)
-
 class UserProfile(Model):
     """Profile for a user"""
     user = OneToOneField(User, on_delete=CASCADE)
     slug = SlugField(unique=True, allow_unicode=True, default='')
     bio = TextField(default="")
     pfp = ImageField()
-    skills = ManyToManyField(Skill)
+    skills_internal = TextField(default="")
     # projects= ManyToManyField(Project)
+
+    @property
+    def skills(self):
+        if self.skills_internal == '':
+            return []
+        return self.skills_internal.split(',')
 
     def get_absolute_url(self):
         return reverse_lazy("accounts:profile", kwargs={'slug': self.user.username})
