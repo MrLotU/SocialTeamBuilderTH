@@ -9,7 +9,9 @@
       <h2>Profile</h2>
     </div>
     <div class="circle--fluid--cell circle--fluid--secondary">
+      {% if user.is_authenticated and user == userprofile.user %}
       <a class="button icon-on-left" href="{% url 'accounts:profile_edit' userprofile.user.username %}">Edit</a>
+      {% endif %}
     </div>
   </div>
 
