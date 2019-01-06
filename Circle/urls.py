@@ -15,14 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.http import HttpResponse
-
-def index(request):
-    return HttpResponse("Hello, world. You're at the Circle index.")
 
 urlpatterns = [
     path('accounts/', include('accounts.urls', namespace='accounts')),
-    path('projects/', include('projects.urls', namespace='projects')),
     path('admin/', admin.site.urls),
-    path('', index, name='home')
+    path('', include('projects.urls', namespace='projects')),
 ]

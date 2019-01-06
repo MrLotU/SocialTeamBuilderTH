@@ -26,7 +26,7 @@ class LoginView(FormView):
             # Return the next URL
             return "{}".format(next_url)
         # Default: Redirect to home
-        return reverse_lazy('home')
+        return reverse_lazy('projects:index')
 
     def get_form(self, form_class=None):
         """Get the form"""
@@ -42,7 +42,7 @@ class LoginView(FormView):
 
 class LogoutView(RedirectView):
     """Logs a user out"""
-    url = reverse_lazy("home")
+    url = reverse_lazy("projects:index")
 
     def get(self, request, *args, **kwargs):
         # Logout the user
