@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db.models import (CASCADE, CharField, ImageField, ManyToManyField,
-                              Model, OneToOneField, SlugField, TextField)
+                              Model, OneToOneField, SlugField, TextField, ForeignKey)
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse_lazy
@@ -14,7 +14,6 @@ class UserProfile(Model):
     bio = TextField(default="")
     pfp = ImageField()
     skills_internal = TextField(default="")
-    # projects= ManyToManyField(Project)
 
     @property
     def skills(self):

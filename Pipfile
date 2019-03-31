@@ -12,6 +12,7 @@ django = "*"
 pillow = "*"
 django-braces = "*"
 coverage = "*"
+django-widget-tweaks = "*"
 
 [requires]
 python_version = "3.7"

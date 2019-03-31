@@ -1,3 +1,4 @@
 .vscode/
 .coverage
 htmlcov/
+.DS_Store

@@ -26,7 +26,9 @@ SECRET_KEY = '5m^qesgc!=y!5%q=8w6!rjqi81n!(3#x6=_6_=1wkauf5=0llp'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '192.168.178.248'
+    '192.168.178.248',
+    '192.168.178.59',
+    'localhost'
 ]
 
 
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'widget_tweaks',
     'accounts',
     'projects'
 ]
