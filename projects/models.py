@@ -11,6 +11,10 @@ class Project(Model):
 
     creator = ForeignKey(User, CASCADE, related_name='created_projects')
 
+    @property
+    def formatted_positions(self):
+        return ', '.join([p.name for p in self.positions.all()])
+
 class Position(Model):
     project = ForeignKey(Project, CASCADE, related_name='positions', related_query_name='position')
     name = CharField(max_length=255)

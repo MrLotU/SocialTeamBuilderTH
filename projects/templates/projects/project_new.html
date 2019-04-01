@@ -19,32 +19,40 @@
       
             <div class="circle--project--positions">
               <h2>Positions</h2>
-      
+              {{ posForm.management_form }}
+              {{ posForm.non_form_errors }}
               <ul class="circle--group--list circle--clone--list">
-                <li>
-                  <input type="text" class="circle--input--h3 position-title" placeholder="Position Title" />
-                  <textarea placeholder="Position description..."></textarea>
-                  <a class="circle--clone--add">Add Position</a>
-                  <a class="circle--clone--remove">Remove</a>
-                </li>
+                {% for f in posForm %}
+                  <li class="form-row">
+                    {{ f.non_field_errors }}
+                    {{ f.name.errors }}
+                    {% render_field f.name class+="circle--input--h3 position-title" placeholder="Position Title" %}
+                    {{ f.description.errors }}
+                    {% render_field f.description placeholder="Position description..." %}
+                    {{ f.length.errors }}
+                    {% render_field f.length placeholder="X hours/week" %}
+                    <a class="circle--clone--add">Add Position</a>
+                    <a class="circle--clone--remove">Remove</a>  
+                  </li>
+                {% endfor %}
               </ul>
-              <a class="button button-primary" href="project.html">Save Project</a>
+              <button type="submit" class="button button-primary">Save Project</button>
       
             </div>
           </div>
       
           <div class="grid-25 grid-push-5">
-      
             <div class="circle--secondary--module">
               <h3>Project Timeline</h3>
-              <textarea placeholder="Time estimate" class="circle--textarea--input"></textarea>
+              {{ form.timeline.errors }}
+              {% render_field form.timeline class+="circle--textarea--input" placeholder="Time estimate" %}
             </div>
       
             <div class="circle--secondary--module">
               <h3>Applicant Requirements</h3>
-              <textarea></textarea>
+              {% render_field form.requirements class+="circle--textarea--input" %}
             </div>
-          </div>      
+          </div>
     </form>
   </div>
 

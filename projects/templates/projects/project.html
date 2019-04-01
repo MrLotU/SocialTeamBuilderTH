@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+{% block body %}
+  <div class="circle--actions--bar">
+    <div class="bounds">
+      <div class="grid-100">
+        <a class="button" href="project_edit.html">Edit Project</a>
+        <a class="button button-text" href="index.html">Delete Project</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="bounds circle--page circle--article">
+    <div class="grid-70">
+      <div class="circle--article--header">
+        <h4 class="circle--article--section">Project</h4>
+        <h1 class="circle--article--title">{{ project.title }}</h1>
+        <p class="circle--article--byline">Project Owner: <a href="{% url 'accounts:profile' project.creator.username %}">{{ project.creator.username }}</a></p>
+      </div>
+
+      <div class="circle--article--body">
+        {{ project.description }}
+      </div>
+
+      <div class="circle--project--positions">
+        <h2>Positions</h2>
+
+        <ul class="circle--group--list">
+          {% for pos in project.positions.all %}
+            <li>
+                <h3>{{ pos.name }}</h3>
+                <p>{{ pos.description }}</p>
+                {% if pos.filled %}
+                <a class="button button-primary button-inactive">Position Filled</a>
+                {% elif project.creator.id == request.user.id %}
+                <a class="button button-primary button-inactive">Position Open To Join</a>
+                {% else %}
+                <a class="button button-primary">Apply</a>
+                {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-25 grid-push-5">
+      <div class="circle--secondary--module">
+        <h3>Project Needs</h3>
+        <ul class="circle--link--list">
+            {% for pos in project.positions.all %}
+              <li><a>{{ pos.name }}</a></li>
+            {% endfor %}
+        </ul>
+      </div>
+
+      <div class="circle--secondary--module">
+        <h3>Project Timeline</h3>
+        <p>{{ project.timeline }}</p>
+      </div>
+
+      <div class="circle--secondary--module">
+        <h3>Applicant Requirements</h3>
+        <p>{{ project.requirements }}</p>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}

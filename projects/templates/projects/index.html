@@ -39,13 +39,13 @@
           </tr>
         </thead>
         <tbody>
-          {% for project in projects %}
-          <tr class="clickable-row" data-href="project.html">
+          {% for project in object_list %}
+          <tr class="clickable-row" data-href="{% url 'projects:detail' project.pk %}">
             <td>
               <h3>{{ project.title }}</h3>
             </td>
             <td class="circle--cell--right">
-              <span class="secondary-label">{{ project.formatted_needs }}</span>
+              <span class="secondary-label">{{ project.formatted_positions }}</span>
             </td>
           </tr>
           {% endfor %}
