@@ -1,11 +1,16 @@
+from urllib.parse import quote_plus
+
 from braces.views import PrefetchRelatedMixin
-from django.http import HttpResponse, HttpResponseRedirect
-from django.views.generic import ListView, CreateView, TemplateView, DetailView, DeleteView
-from django.urls import reverse_lazy
 from django.contrib.auth.views import redirect_to_login
-from .models import Project, Need
 from django.forms import HiddenInput, Textarea
-from .forms import ProjectForm, PositionFormSet
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse_lazy
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  TemplateView)
+
+from .forms import PositionFormSet, ProjectForm
+from .models import Need, Project
+
 
 class DeleteProject(DeleteView):
     model = Project
@@ -60,6 +65,7 @@ class CreateProject(TemplateView): # pylint: disable=too-many-ancestors
                 if form.is_valid():
                     p = form.save(commit=False)
                     p.project = project
+                    p.slug = p.name.lower().replace(' ', '_')
                     p.save()
                 else:
                     return super().get(request, *args, **kwargs)
@@ -93,19 +99,31 @@ class Index(PrefetchRelatedMixin, ListView): # pylint: disable=too-many-ancestor
     template_name = "projects/index.html"
     prefetch_related = ('positions',)
 
+    def get_queryset(self):
+        need = self.request.GET.get('n', None)
+        if not need:
+            return super().get_queryset()
+        return self.model.objects.filter(position__slug=need).distinct()
+
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(object_list=object_list, **kwargs)
-        print(context)
-        needs = Need.objects.all()
-        need = self.request.GET.get('need', None)
-        if not need:
-            context['no_need_selected'] = True
-        else:
-            def check_need(n):
-                n.selected = n.slug == need
-                return n
-
-            needs = list(map(check_need, needs))
-
+        _needs = list(
+            Project.objects.all()
+            .select_related('position')
+            .values('position__slug', 'position__name')
+        )
+        blacklist = []
+        def f(i): # pylint: disable=invalid-name
+            if i['position__slug'] in blacklist:
+                return False
+            blacklist.append(i['position__slug'])
+            return True
+        needs = filter(f, _needs)
+        need = self.request.GET.get('n', None)
+        def c(n): # pylint: disable=invalid-name
+            n['selected'] = n['position__slug'] == need
+            return n
+        needs = list(map(c, needs))
         context['needs'] = needs
+        context['no_need_selected'] = not need
         return context

@@ -24,7 +24,7 @@
         <ul class="circle--filter--list">
           <li><a {% if no_need_selected %}class="selected" {% endif %}href="{% url 'projects:index' %}">All Needs</a></li>
           {% for need in needs %}
-          <li><a {% if need.selected %}class="selected" {% endif%}href="{% url 'projects:index' %}?need={{ need.slug }}">{{ need.name }}</a></li>
+          <li><a {% if need.selected %}class="selected" {% endif%}href="{% url 'projects:index' %}?n={{ need.position__slug|urlencode }}">{{ need.position__name }}</a></li>
           {% endfor %}
         </ul>
       </div>

@@ -21,10 +21,17 @@ class Position(Model):
     description = TextField(default="")
     filled = BooleanField(default=False)
     length = CharField(max_length=255)
+    slug = CharField(max_length=255)
+
+    def __init__(self, *args, **kwargs):
+        try:
+            kwargs['slug'] = kwargs['name'].lower().replace(' ', '_')
+        except:
+            pass
+        super().__init__(*args, **kwargs)
 
 class NeedManager(Manager):
     def get_or_create(self, *args, **kwargs):
-        print(args, kwargs)
         try:
             return super().get_or_create(*args, **kwargs)
         except IntegrityError:
