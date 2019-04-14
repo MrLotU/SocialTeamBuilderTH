@@ -1,30 +1,78 @@
-from urllib.parse import quote_plus
-
 from braces.views import PrefetchRelatedMixin
 from django.contrib.auth.views import redirect_to_login
-from django.forms import HiddenInput, Textarea
-from django.http import HttpResponse, HttpResponseRedirect
+from django.forms import Textarea
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
-                                  TemplateView)
+from django.views.generic import (DeleteView, DetailView, ListView,
+                                  RedirectView, TemplateView)
 
+from .constants import get_application_filters
 from .forms import PositionFormSet, ProjectForm
-from .models import Need, Project
+from .models import Application, Position, Project
 
 
 class DeleteProject(DeleteView):
     model = Project
     success_url = reverse_lazy('projects:index')
 
+
+class ApplicationsView(TemplateView):
+    template_name = "projects/applications.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        f = None
+        try:
+            f = int(self.request.GET.get('f', None))
+        except ValueError:
+            pass
+        filters = [{'name': v, 'selected': i == f} for i, v in enumerate(get_application_filters())]
+        if not f:
+            filters[0]['selected'] = True
+        print(filters)
+        context['filters'] = filters
+        context['applications'] = Application.objects.all()
+        return context
+
 class ProjectDetail(PrefetchRelatedMixin, DetailView):
     model = Project
     template_name = "projects/project.html"
     prefetch_related = ('positions',)
 
-class CreateProject(TemplateView): # pylint: disable=too-many-ancestors
-    # model = Project
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = self.get_object()
+        apped_positions = []
+        for pos in obj.positions.all():
+            for app in pos.applications.all():
+                if app.user == self.request.user:
+                    apped_positions.append(pos)
+        context['apped_positions'] = apped_positions
+        return context
+
+
+class ProjectApply(RedirectView):
+    def get_redirect_url(self, pk, *args, **kwargs):  # pylint: disable=arguments-differ
+        return reverse_lazy('projects:detail', kwargs={
+            'pk': pk
+        })
+
+    def get(self, request, pk, pos, *args, **kwargs):  # pylint: disable=arguments-differ
+        if not request.user.is_authenticated:
+            return redirect_to_login(reverse_lazy(
+                'projects:detail', kwargs={
+                    'pk': pk
+                }
+            ))
+        Application.objects.create(
+            user=request.user,
+            position=Position.objects.get(pk=pos)
+        )
+        return super().get(request, pk=pk, pos=pos * args, **kwargs)
+
+
+class CreateProject(TemplateView):  # pylint: disable=too-many-ancestors
     template_name = 'projects/project_new.html'
-    # fields = ['needs_internal', 'timeline', 'title', 'description', 'requirements', 'creator']
 
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -33,20 +81,19 @@ class CreateProject(TemplateView): # pylint: disable=too-many-ancestors
             ))
         return super().get(request, *args, **kwargs)
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(object_list=object_list, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         if self.request.POST:
             form = ProjectForm(self.request.POST)
             formset = PositionFormSet(self.request.POST, prefix='formset')
         else:
             form = ProjectForm()
-            formset = PositionFormSet(prefix='formset')            
+            formset = PositionFormSet(prefix='formset')
         form.fields['timeline'].widget = Textarea()
         form.fields['requirements'].widget = Textarea()
         context['form'] = form
         context['posForm'] = formset
         return context
-
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -75,26 +122,10 @@ class CreateProject(TemplateView): # pylint: disable=too-many-ancestors
                     'pk': project.pk
                 }
             ))
-
         return super().get(request, *args, **kwargs)
-    #     return super().post(request, *args, **kwargs)
 
-    # def get_form(self, form_class=None):
-    #     form = super().get_form(form_class)
-    #     form.fields['needs_internal'].required = False
-    #     form.fields['needs_internal'].widget = HiddenInput()
 
-    #     return form
-
-    # def form_valid(self, form):
-    #     form.instance.creator = self.request.user
-    #     print(form)
-
-    #     return super().form_valid(form)
-
-    # Regex = r'\d+ (month|day|week|year|hour)s?'
-
-class Index(PrefetchRelatedMixin, ListView): # pylint: disable=too-many-ancestors
+class Index(PrefetchRelatedMixin, ListView):  # pylint: disable=too-many-ancestors
     model = Project
     template_name = "projects/index.html"
     prefetch_related = ('positions',)
@@ -113,14 +144,16 @@ class Index(PrefetchRelatedMixin, ListView): # pylint: disable=too-many-ancestor
             .values('position__slug', 'position__name')
         )
         blacklist = []
-        def f(i): # pylint: disable=invalid-name
+
+        def f(i):  # pylint: disable=invalid-name
             if i['position__slug'] in blacklist:
                 return False
             blacklist.append(i['position__slug'])
             return True
         needs = filter(f, _needs)
         need = self.request.GET.get('n', None)
-        def c(n): # pylint: disable=invalid-name
+
+        def c(n):  # pylint: disable=invalid-name
             n['selected'] = n['position__slug'] == need
             return n
         needs = list(map(c, needs))

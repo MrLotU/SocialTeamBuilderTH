@@ -20,7 +20,7 @@ class LoginView(FormView):
 
     def get_success_url(self):
         """Gets the URL to redirect to after a successful login"""
-        # Chec if we have a next url as Query parameter
+        # Check if we have a next url as Query parameter
         next_url = self.request.GET.get('next', None)
         if next_url:
             # Return the next URL

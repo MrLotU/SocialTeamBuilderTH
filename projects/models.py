@@ -1,6 +1,8 @@
-from django.db.models import Model, CharField, Manager, BooleanField, TextField, ForeignKey, CASCADE
-from django.db.utils import IntegrityError
 from django.contrib.auth.models import User
+from django.db.models import (CASCADE, BooleanField, CharField, ForeignKey,
+                              Manager, Model, TextField)
+from django.db.utils import IntegrityError
+
 
 class Project(Model):
     needs_internal = TextField(default="")
@@ -23,12 +25,22 @@ class Position(Model):
     length = CharField(max_length=255)
     slug = CharField(max_length=255)
 
+    @property
+    def filledBy(self):
+        return self.applications.get(accepted=True)
+
     def __init__(self, *args, **kwargs):
         try:
             kwargs['slug'] = kwargs['name'].lower().replace(' ', '_')
         except:
             pass
         super().__init__(*args, **kwargs)
+
+class Application(Model):
+    position = ForeignKey(Position, on_delete=CASCADE, related_name="applications")
+    user = ForeignKey(User, on_delete=CASCADE, related_name="applications")
+    accepted = BooleanField(default=False)
+    denied = BooleanField(default=False)
 
 class NeedManager(Manager):
     def get_or_create(self, *args, **kwargs):
