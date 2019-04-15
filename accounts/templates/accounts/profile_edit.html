@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="bounds circle--page">
-  <form id="form" method="POST">
+  <form id="form" enctype="multipart/form-data" method="POST">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
@@ -55,12 +55,16 @@
     <div class="grid-25 grid-push-5">
 
       <div class="circle--secondary--module">
-        <div class="circle--primary--avatar">
-          <a class="button">
-            Upload Photo
-            {{ form.pfp }}
-          </a>
-        </div>
+        {% if userprofile.pfp %}
+        <img class="circle--primary--avatar" src="{{ userprofile.pfp.url }}"
+          alt="{{ userprofile.user.username }} Profile Picture">
+        <p style="margin-bottom: 5px;">Update photo:</p>
+        <input type="file" name="pfp" accept="image/*" id="id_pfp" title="Update photo">
+        {% else %}
+        <div class="circle--primary--avatar"> </div>
+        <p style="margin-bottom: 5px;">Upload photo:</p>
+        <input type="file" name="pfp" accept="image/*" id="id_pfp" title="Update photo">
+        {% endif %}
       </div>
 
       <div class="circle--secondary--module">

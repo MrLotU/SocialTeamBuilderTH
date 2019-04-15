@@ -57,11 +57,11 @@
   <div class="grid-25 grid-push-5">
 
     <div class="circle--secondary--module">
-      <div class="circle--primary--avatar">
         {% if userprofile.pfp %}
-        <img src="{{ userprofile.pfp.url }}" alt="{{ userprofile.user.username }} Profile Picture">
+        <img class="circle--primary--avatar" src="{{ userprofile.pfp.url }}" alt="{{ userprofile.user.username }} Profile Picture">
+        {% else %}
+        <div class="circle--primary--avatar"></div>
         {% endif %}
-      </div>
     </div>
 
     <div class="circle--secondary--module">

@@ -2054,6 +2054,11 @@ input[type="email"].circle--input--h6, input[type="number"].circle--input--h6, i
   position: relative;
   position: relative;
 }
+/* Make the image not HUGE */
+.circle--primary--avatar img {
+  height: 100%;
+  width: 100%;
+}
 /* line 73, ../sass/circle/core/mixins.sass */
 .circle--primary--avatar:before {
   display: block;
