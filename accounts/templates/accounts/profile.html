@@ -29,22 +29,18 @@
     </div>
 
     <h2>Past Projects</h2>
-    {% if userprofile.projects.get %}
+    {% if past_apps %}
     <table class="u-full-width circle--table">
       <thead>
         <tr>
           <th>Project Title</th>
-          <th class="circle--cell--right">Project Needs</th>
         </tr>
       </thead>
       <tbody>
-        {% for project in userprofile.projects.get %}
-        <tr class="clickable-row" data-href="project.html">
+        {% for app in past_apps %}
+        <tr class="clickable-row" data-href="{% url 'projects:detail' app.position.project.pk %}">
           <td>
-            <h3>{{ project.name }}</h3>
-          </td>
-          <td class="circle--cell--right">
-            <span class="secondary-label">{{ project.my_title }}</span>
+            <h3>{{ app.position.project.title }}</h3>
           </td>
         </tr>
         {% endfor %}

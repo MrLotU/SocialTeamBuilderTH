@@ -61,6 +61,12 @@ class ProfileView(PrefetchRelatedMixin, DetailView):
     prefetch_related = ("user",)
     template_name = "accounts/profile.html"
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        past_apps = self.request.user.applications.filter(accepted=True)
+        context['past_apps'] = past_apps
+        return context
+
     def get(self, request, *args, **kwargs):
         """Get the profile"""
         # If we pass in `/me/` as profile, see if we get a user back,

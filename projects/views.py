@@ -36,12 +36,12 @@ class HandleApplicationView(RedirectView):
 
     def get(self, request, pk, app, s, *args, **kwargs): 
         project = Project.objects.get(pk=pk)
-        if not request.user.is_authenticated or not project.creator == request.user:
+        app = Application.objects.get(pk=app)
+        if not request.user.is_authenticated or not project.creator == request.user or app.position.filled:
             return HttpResponseRedirect(reverse_lazy('projects:detail', kwargs={
                 'pk': pk
             }))
         res = super().get(request, *args, **kwargs, pk=pk, app=app, s=s)
-        app = Application.objects.get(pk=app)
         if not s in [0, 1]:
             return res
         content = 'Hi {},\nWe are {} to let you know you have been {} for the {} position on {}.\n\nKind regards,\nThe Circle team' # pylint: disable=line-too-long
