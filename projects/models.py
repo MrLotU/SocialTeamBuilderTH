@@ -42,6 +42,14 @@ class Application(Model):
     accepted = BooleanField(default=False)
     denied = BooleanField(default=False)
 
+    @property
+    def status(self):
+        if self.accepted:
+            return 'Accepted'
+        if self.denied:
+            return 'Denied'
+        return 'Awaiting judgement'
+
 class NeedManager(Manager):
     def get_or_create(self, *args, **kwargs):
         try:

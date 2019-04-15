@@ -1,5 +1,6 @@
 from braces.views import PrefetchRelatedMixin
 from django.contrib.auth.views import redirect_to_login
+from django.db.models import Q
 from django.forms import Textarea
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -11,27 +12,77 @@ from .forms import PositionFormSet, ProjectForm
 from .models import Application, Position, Project
 
 
-class DeleteProject(DeleteView):
-    model = Project
-    success_url = reverse_lazy('projects:index')
+class DeleteProject(RedirectView):
+    url = reverse_lazy('projects:index')
 
+    def get(self, request, pk, *args, **kwargs):
+        m = Project.objects.get(pk=pk)
+        if not request.user.is_authenticated or not m.creator == request.user:
+            return HttpResponseRedirect(reverse_lazy('projects:detail', kwargs={
+                'pk': m.pk
+            }))
+        m.delete()
+        return super().get(request, pk=pk, *args, **kwargs)
+
+
+class HandleApplicationView(RedirectView):
+    def get_redirect_url(self, pk, *args, **kwargs): # pylint: disable=arguments-differ
+        return reverse_lazy('projects:applications', kwargs={
+            'pk': pk
+        })
+
+    def get(self, request, pk, app, s, *args, **kwargs): # pylint: disable=arguments-differ
+        project = Project.objects.get(pk=pk)
+        if not request.user.is_authenticated or not project.creator == request.user:
+            return HttpResponseRedirect(reverse_lazy('projects:detail', kwargs={
+                'pk': pk
+            }))
+        res = super().get(request, *args, **kwargs, pk=pk, app=app, s=s)
+        app = Application.objects.get(pk=app)
+        if not s in [0, 1]:
+            return res
+        if s == 1:
+            app.accepted = True
+            app.position.filled = True
+            app.position.save()
+        else:
+            app.denied = True
+        app.save()
+        return res
 
 class ApplicationsView(TemplateView):
     template_name = "projects/applications.html"
 
+    def get(self, request, *args, **kwargs):
+        project = Project.objects.get(pk=kwargs['pk'])
+        if not request.user.is_authenticated or not project.creator == request.user:
+            return HttpResponseRedirect(reverse_lazy('projects:detail', kwargs={
+                'pk': kwargs['pk']
+            }))
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        f = None
+        project = Project.objects.get(pk=kwargs['pk'])
+        context['project'] = project
+        context['projects'] = Project.objects.filter(creator=self.request.user)
+        f = None # pylint: disable=invalid-name
         try:
-            f = int(self.request.GET.get('f', None))
-        except ValueError:
+            f = int(self.request.GET.get('f', None)) # pylint: disable=invalid-name
+        except (ValueError, TypeError):
             pass
         filters = [{'name': v, 'selected': i == f} for i, v in enumerate(get_application_filters())]
         if not f:
             filters[0]['selected'] = True
-        print(filters)
         context['filters'] = filters
-        context['applications'] = Application.objects.all()
+        apps = Application.objects.filter(position__project__pk=kwargs['pk'])
+        if f == 1:
+            apps = apps.filter(position__filled=False, accepted=False, denied=False)
+        elif f == 2:
+            apps = Application.objects.filter(position__filled=True, accepted=True)
+        elif f == 3:
+            apps = Application.objects.filter(denied=True)
+        context['applications'] = apps
         return context
 
 class ProjectDetail(PrefetchRelatedMixin, DetailView):
@@ -52,12 +103,12 @@ class ProjectDetail(PrefetchRelatedMixin, DetailView):
 
 
 class ProjectApply(RedirectView):
-    def get_redirect_url(self, pk, *args, **kwargs):  # pylint: disable=arguments-differ
+    def get_redirect_url(self, pk, *args, **kwargs): # pylint: disable=arguments-differ
         return reverse_lazy('projects:detail', kwargs={
             'pk': pk
         })
 
-    def get(self, request, pk, pos, *args, **kwargs):  # pylint: disable=arguments-differ
+    def get(self, request, pk, pos, *args, **kwargs): # pylint: disable=arguments-differ
         if not request.user.is_authenticated:
             return redirect_to_login(reverse_lazy(
                 'projects:detail', kwargs={
@@ -132,9 +183,19 @@ class Index(PrefetchRelatedMixin, ListView):  # pylint: disable=too-many-ancesto
 
     def get_queryset(self):
         need = self.request.GET.get('n', None)
-        if not need:
+        search = self.request.GET.get('s', None)
+        filter_filled = self.request.GET.get('f', None)
+        if not need and not search:
             return super().get_queryset()
-        return self.model.objects.filter(position__slug=need).distinct()
+        base = self.model.objects
+        if search:
+            base = base.filter(Q(title__icontains=search) | Q(description__icontains=search))
+        if need:
+            if filter_filled:
+                base = base.filter(position__filled=False, position__slug=need).distinct()
+            else:
+                base = base.filter(position__slug=need).distinct()
+        return base
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(object_list=object_list, **kwargs)
@@ -158,5 +219,8 @@ class Index(PrefetchRelatedMixin, ListView):  # pylint: disable=too-many-ancesto
             return n
         needs = list(map(c, needs))
         context['needs'] = needs
+        context['s'] = self.request.GET.get('s')
+        context['n'] = self.request.GET.get('n')
+        context['f'] = self.request.GET.get('f')
         context['no_need_selected'] = not need
         return context

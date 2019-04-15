@@ -1,56 +1,79 @@
 {% extends "layout.html" %}
+{% load utils %}
 
 {% block body %}
-  <div class="bounds circle--page">
-    <div class="circle--page--header circle--fluid">
-      <div class="circle--fluid--cell circle--fluid--primary">
-        <h2>Projects</h2>
-      </div>
-      {% if user.is_authenticated %}
-      <div class="circle--fluid--cell circle--fluid--secondary">
-        <a class="button button-primary icon-on-left" href="{% url 'projects:new' %}">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 13 13" style="enable-background:new 0 0 13 13;" xml:space="preserve" class="add">
-            <polygon points="7,6 7,0 6,0 6,6 0,6 0,7 6,7 6,13 7,13 7,7 13,7 13,6 "/>
-          </svg>
-          New Project
-        </a>
-      </div>
-      {% endif %}
+<div class="bounds circle--page">
+  <div class="circle--page--header circle--fluid">
+    <div class="circle--fluid--cell circle--fluid--primary">
+      <h2>Projects</h2>
     </div>
-
-    <div class="grid-25">
-      <div class="circle--filter circle--secondary--module">
-        <h4>Project Needs</h4>
-        <ul class="circle--filter--list">
-          <li><a {% if no_need_selected %}class="selected" {% endif %}href="{% url 'projects:index' %}">All Needs</a></li>
-          {% for need in needs %}
-          <li><a {% if need.selected %}class="selected" {% endif%}href="{% url 'projects:index' %}?n={{ need.position__slug|urlencode }}">{{ need.position__name }}</a></li>
-          {% endfor %}
-        </ul>
-      </div>
+    {% if user.is_authenticated %}
+    <div class="circle--fluid--cell circle--fluid--secondary">
+      <a class="button button-primary icon-on-left" href="{% url 'projects:new' %}">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+          viewBox="0 0 13 13" style="enable-background:new 0 0 13 13;" xml:space="preserve" class="add">
+          <polygon points="7,6 7,0 6,0 6,6 0,6 0,7 6,7 6,13 7,13 7,7 13,7 13,6 " />
+        </svg>
+        New Project
+      </a>
     </div>
+    {% endif %}
+  </div>
 
-    <div class="grid-70 grid-push-5">
-      <table class="u-full-width circle--table">
-        <thead>
-          <tr>
-            <th>Project Title</th>
-            <th class="circle--cell--right">Project Needs</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for project in object_list %}
-          <tr class="clickable-row" data-href="{% url 'projects:detail' project.pk %}">
-            <td>
-              <h3>{{ project.title }}</h3>
-            </td>
-            <td class="circle--cell--right">
-              <span class="secondary-label">{{ project.formatted_positions }}</span>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <div class="grid-25">
+    <div>
+      <h4>Project Needs</h4>
+      <ul class="circle--filter--list">
+        <li><a {% if no_need_selected %}class="selected"
+            {% endif %}href="{% url 'projects:index' %}{% create_query s=s f=f %}">All Needs</a></li>
+        {% for need in needs %}
+        <li><a {% if need.selected %}class="selected"
+            {% endif%}href="{% url 'projects:index' %}{% create_query need.position__slug|urlencode s f %}">{{ need.position__name }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% if s %}
+    <div>
+      <h4>Search</h4>
+      <ul class="circle--filter--list">
+        <li><strong>x</strong> <a href="{% url 'projects:index' %}{% create_query n=n f=f %}">Clear search</a></li>
+      </ul>
+    </div>
+    {% endif %}
+    <div>
+      <h4>Filters</h4>
+      <ul class="circle--filter--list">
+        {% if f %}
+        <li><a href="{% url 'projects:index' %}{% create_query n=n s=s %}">Show filled positions</a></li>
+        {% else %}
+        <li><a href="{% url 'projects:index' %}{% create_query n=n s=s f=1 %}">Hide filled positions</a></li>
+        {% endif %}
+      </ul>
     </div>
   </div>
+
+  <div class="grid-70 grid-push-5">
+    <table class="u-full-width circle--table">
+      <thead>
+        <tr>
+          <th>Project Title</th>
+          <th class="circle--cell--right">Project Needs</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for project in object_list %}
+        <tr class="clickable-row" data-href="{% url 'projects:detail' project.pk %}">
+          <td>
+            <h3>{{ project.title }}</h3>
+          </td>
+          <td class="circle--cell--right">
+            <span class="secondary-label">{% for pos in project.positions.all %}{% if pos.filled and f %}<del>{% endif %}{{ pos.name }}{% if pos.filled and f %}</del>{% endif %} {% endfor %}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

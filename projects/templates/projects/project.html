@@ -1,13 +1,15 @@
 {% extends 'layout.html' %}
 {% block body %}
-  <div class="circle--actions--bar">
-    <div class="bounds">
-      <div class="grid-100">
-        <a class="button" href="project_edit.html">Edit Project</a>
-        <a class="button button-text" href="{% url 'projects:delete' pk=project.pk %}">Delete Project</a>
+  {% if project.creator == request.user %}
+    <div class="circle--actions--bar">
+      <div class="bounds">
+        <div class="grid-100">
+          <a class="button" href="project_edit.html">Edit Project</a>
+          <a class="button button-text" href="{% url 'projects:delete' pk=project.pk %}">Delete Project</a>
+        </div>
       </div>
     </div>
-  </div>
+  {% endif %}
 
   <div class="bounds circle--page circle--article">
     <div class="grid-70">
@@ -32,7 +34,7 @@
                 <p><i>{{ pos.length }}</i></p>
                 {% if pos.filled %}
                 <a class="button button-primary button-inactive">Position Filled</a>
-                {% elif pos.applications.all|length >= 1 %}
+                {% elif pos.applications.all|length >= 1 and project.creator == request.user %}
                 <a href="{% url 'projects:applications' pk=project.pk %}" class="button button-primary">Check applications</a>
                 {% elif pos in apped_positions %}
                 <a class="button button-primary button-inactive">You applied to this position</a>
