@@ -26,12 +26,12 @@ class DeleteProject(RedirectView):
 
 
 class HandleApplicationView(RedirectView):
-    def get_redirect_url(self, pk, *args, **kwargs): # pylint: disable=arguments-differ
+    def get_redirect_url(self, pk, *args, **kwargs): 
         return reverse_lazy('projects:applications', kwargs={
             'pk': pk
         })
 
-    def get(self, request, pk, app, s, *args, **kwargs): # pylint: disable=arguments-differ
+    def get(self, request, pk, app, s, *args, **kwargs): 
         project = Project.objects.get(pk=pk)
         if not request.user.is_authenticated or not project.creator == request.user:
             return HttpResponseRedirect(reverse_lazy('projects:detail', kwargs={
@@ -66,9 +66,9 @@ class ApplicationsView(TemplateView):
         project = Project.objects.get(pk=kwargs['pk'])
         context['project'] = project
         context['projects'] = Project.objects.filter(creator=self.request.user)
-        f = None # pylint: disable=invalid-name
+        f = None
         try:
-            f = int(self.request.GET.get('f', None)) # pylint: disable=invalid-name
+            f = int(self.request.GET.get('f', None))
         except (ValueError, TypeError):
             pass
         filters = [{'name': v, 'selected': i == f} for i, v in enumerate(get_application_filters())]
@@ -103,12 +103,12 @@ class ProjectDetail(PrefetchRelatedMixin, DetailView):
 
 
 class ProjectApply(RedirectView):
-    def get_redirect_url(self, pk, *args, **kwargs): # pylint: disable=arguments-differ
+    def get_redirect_url(self, pk, *args, **kwargs): 
         return reverse_lazy('projects:detail', kwargs={
             'pk': pk
         })
 
-    def get(self, request, pk, pos, *args, **kwargs): # pylint: disable=arguments-differ
+    def get(self, request, pk, pos, *args, **kwargs): 
         if not request.user.is_authenticated:
             return redirect_to_login(reverse_lazy(
                 'projects:detail', kwargs={
@@ -122,7 +122,7 @@ class ProjectApply(RedirectView):
         return super().get(request, pk=pk, pos=pos * args, **kwargs)
 
 
-class CreateProject(TemplateView):  # pylint: disable=too-many-ancestors
+class CreateProject(TemplateView): 
     template_name = 'projects/project_new.html'
 
     def get(self, request, *args, **kwargs):
@@ -176,7 +176,7 @@ class CreateProject(TemplateView):  # pylint: disable=too-many-ancestors
         return super().get(request, *args, **kwargs)
 
 
-class Index(PrefetchRelatedMixin, ListView):  # pylint: disable=too-many-ancestors
+class Index(PrefetchRelatedMixin, ListView): 
     model = Project
     template_name = "projects/index.html"
     prefetch_related = ('positions',)
@@ -206,7 +206,7 @@ class Index(PrefetchRelatedMixin, ListView):  # pylint: disable=too-many-ancesto
         )
         blacklist = []
 
-        def f(i):  # pylint: disable=invalid-name
+        def f(i): 
             if i['position__slug'] in blacklist:
                 return False
             blacklist.append(i['position__slug'])
@@ -214,7 +214,7 @@ class Index(PrefetchRelatedMixin, ListView):  # pylint: disable=too-many-ancesto
         needs = filter(f, _needs)
         need = self.request.GET.get('n', None)
 
-        def c(n):  # pylint: disable=invalid-name
+        def c(n): 
             n['selected'] = n['position__slug'] == need
             return n
         needs = list(map(c, needs))

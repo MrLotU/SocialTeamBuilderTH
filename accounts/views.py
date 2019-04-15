@@ -49,13 +49,13 @@ class LogoutView(RedirectView):
         logout(request)
         return super().get(request, *args, **kwargs)
 
-class SignUpView(CreateView): # pylint: disable=too-many-ancestors
+class SignUpView(CreateView):
     """Creates a new user"""
     form_class = UserCreateForm
     success_url = reverse_lazy("accounts:login")
     template_name = "accounts/signup.html"
 
-class ProfileView(PrefetchRelatedMixin, DetailView): # pylint: disable=too-many-ancestors
+class ProfileView(PrefetchRelatedMixin, DetailView):
     """Profile of a user"""
     model = UserProfile
     prefetch_related = ("user",)
@@ -87,7 +87,7 @@ class ProfileView(PrefetchRelatedMixin, DetailView): # pylint: disable=too-many-
             slug = self.request.user.username
         return queryset.get(slug=slug)
 
-class ProfileEditView(LoginRequiredMixin, PrefetchRelatedMixin, UpdateView): # pylint: disable=too-many-ancestors
+class ProfileEditView(LoginRequiredMixin, PrefetchRelatedMixin, UpdateView):
     """Update profile of a user"""
     model = UserProfile
     prefetch_related = ("user",)
