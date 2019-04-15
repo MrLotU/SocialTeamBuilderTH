@@ -45,9 +45,14 @@
       <h4>Filters</h4>
       <ul class="circle--filter--list">
         {% if f %}
-        <li><a href="{% url 'projects:index' %}{% create_query n=n s=s %}">Show filled positions</a></li>
+        <li><a href="{% url 'projects:index' %}{% create_query n=n s=s m=m %}">Show filled positions</a></li>
         {% else %}
-        <li><a href="{% url 'projects:index' %}{% create_query n=n s=s f=1 %}">Hide filled positions</a></li>
+        <li><a href="{% url 'projects:index' %}{% create_query n=n s=s f=1  m=m %}">Hide filled positions</a></li>
+        {% endif %}
+        {% if not m %}
+        <li><a href="{% url 'projects:index' %}{% create_query n=n s=s f=f m=1 %}">Show projects with positions just for me</a></li>
+        {% else %}
+        <li><a href="{% url 'projects:index' %}{% create_query n=n s=s f=f %}">Show all projects</a></li>
         {% endif %}
       </ul>
     </div>

@@ -1,10 +1,11 @@
 {% extends 'layout.html' %}
+{% load utils %}
+
 {% block body %}
   {% if project.creator == request.user %}
     <div class="circle--actions--bar">
       <div class="bounds">
         <div class="grid-100">
-          <a class="button" href="project_edit.html">Edit Project</a>
           <a class="button button-text" href="{% url 'projects:delete' pk=project.pk %}">Delete Project</a>
         </div>
       </div>
@@ -20,7 +21,7 @@
       </div>
 
       <div class="circle--article--body">
-        {{ project.description }}
+        {{ project.description|markdown_to_html }}
       </div>
 
       <div class="circle--project--positions">
@@ -30,7 +31,7 @@
           {% for pos in project.positions.all %}
             <li>
                 <h3>{{ pos.name }}</h3>
-                <p>{{ pos.description }}</p>
+                {{ pos.description|markdown_to_html }}
                 <p><i>{{ pos.length }}</i></p>
                 {% if pos.filled %}
                 <a class="button button-primary button-inactive">Position Filled</a>

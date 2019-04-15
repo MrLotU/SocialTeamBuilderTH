@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-#disable=arguments-differ,invalid-name,too-many-ancestors
+disable=arguments-differ,invalid-name,too-many-ancestors

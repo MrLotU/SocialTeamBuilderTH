@@ -1,11 +1,14 @@
+import re
+
 from braces.views import PrefetchRelatedMixin
 from django.contrib.auth.views import redirect_to_login
+from django.core.mail import send_mail
 from django.db.models import Q
 from django.forms import Textarea
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.views.generic import (DeleteView, DetailView, ListView,
-                                  RedirectView, TemplateView)
+from django.views.generic import (DetailView, ListView, RedirectView,
+                                  TemplateView)
 
 from .constants import get_application_filters
 from .forms import PositionFormSet, ProjectForm
@@ -41,12 +44,31 @@ class HandleApplicationView(RedirectView):
         app = Application.objects.get(pk=app)
         if not s in [0, 1]:
             return res
+        content = 'Hi {},\nWe are {} to let you know you have been {} for the {} position on {}.\n\nKind regards,\nThe Circle team' # pylint: disable=line-too-long
         if s == 1:
             app.accepted = True
             app.position.filled = True
             app.position.save()
+            content = content.format(
+                app.user.username,
+                'thrilled', 'accepted',
+                app.position.name,
+                app.position.project.title
+            )
         else:
             app.denied = True
+            content = content.format(
+                app.user.username,
+                'saddend', 'rejected',
+                app.position.name,
+                app.position.project.title
+            )
+        send_mail(
+            'Application update',
+            content,
+            'updates@circle.com',
+            [app.user.email]
+        )
         app.save()
         return res
 
@@ -185,9 +207,24 @@ class Index(PrefetchRelatedMixin, ListView):
         need = self.request.GET.get('n', None)
         search = self.request.GET.get('s', None)
         filter_filled = self.request.GET.get('f', None)
+        me = self.request.GET.get('m', None)
+        base = self.model.objects
+        if me:
+            l = [
+                s.lower()
+                .replace('development', '')
+                .replace('developer', '')
+                .strip()
+                .replace(' ', '_')
+                for s in self.request.user.profile.skills_internal.split(',')
+            ]
+            print(l)
+            q = Q()
+            for x in l:
+                q |= Q(position__slug__icontains=x)
+            return base.filter(q).distinct()
         if not need and not search:
             return super().get_queryset()
-        base = self.model.objects
         if search:
             base = base.filter(Q(title__icontains=search) | Q(description__icontains=search))
         if need:
@@ -206,7 +243,7 @@ class Index(PrefetchRelatedMixin, ListView):
         )
         blacklist = []
 
-        def f(i): 
+        def f(i):
             if i['position__slug'] in blacklist:
                 return False
             blacklist.append(i['position__slug'])
@@ -214,7 +251,7 @@ class Index(PrefetchRelatedMixin, ListView):
         needs = filter(f, _needs)
         need = self.request.GET.get('n', None)
 
-        def c(n): 
+        def c(n):
             n['selected'] = n['position__slug'] == need
             return n
         needs = list(map(c, needs))
@@ -222,5 +259,6 @@ class Index(PrefetchRelatedMixin, ListView):
         context['s'] = self.request.GET.get('s')
         context['n'] = self.request.GET.get('n')
         context['f'] = self.request.GET.get('f')
+        context['m'] = self.request.GET.get('m')
         context['no_need_selected'] = not need
         return context

@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% load utils %}
 
 {% block title %}{{ block.super }} | {{ userprofile.user.username }}{%endblock %}
 
@@ -20,7 +21,7 @@
     <div class="circle--article--body">
       <p>
         {% if userprofile.bio %}
-        {{ userprofile.bio }}
+        {{ userprofile.bio|markdown_to_html }}
         {% else %}
         No bio provided
         {% endif %}

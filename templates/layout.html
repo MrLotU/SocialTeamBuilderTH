@@ -88,7 +88,7 @@
                     const urlParams = new URLSearchParams(window.location.search);
                     var params = { s: $("#search").val() }
                     if (urlParams.get('n')) params.n = urlParams.get('n')
-                    console.log(params, urlParams.get('n'))
+                    if (urlParams.get('f')) params.f = urlParams.get('f')
                     document.location = '/?' + jQuery.param(params)
                 }
             })
